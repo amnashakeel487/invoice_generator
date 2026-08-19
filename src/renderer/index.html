@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poultry Smart Traders — Invoice Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- ── Sidebar ─────────────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="brand-card">
+        <div class="brand-badge">PST</div>
+        <div class="brand-text">
+          <div class="brand-title">POULTRY SMART</div>
+          <div class="brand-sub">Invoice Generator</div>
+        </div>
+      </div>
+
+      <div class="nav-label">MAIN MENU</div>
+      <nav class="nav-menu">
+        <button class="nav-btn active" data-tab="invoice">
+          <span class="nav-icon">📝</span> Create Invoice
+        </button>
+        <button class="nav-btn" data-tab="history">
+          <span class="nav-icon">📋</span> Invoice History
+        </button>
+        <button class="nav-btn" data-tab="settings">
+          <span class="nav-icon">⚙️</span> Settings
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-dot"></div>
+        <span class="status-text">Local DB Ready</span>
+      </div>
+    </aside>
+
+    <!-- ── Content Area ────────────────────────────────────── -->
+    <main class="content-area">
+
+      <!-- TAB: Create Invoice -->
+      <section class="tab-panel active" id="tab-invoice">
+        <div class="tab-scroll">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Create Sale Invoice</h1>
+              <p class="page-sub">Enter sale details and line items below. Calculations update in real-time.</p>
+            </div>
+            <button class="btn btn-secondary" id="btn-reset">↺&nbsp; Reset Form</button>
+          </div>
+
+          <!-- 1. Document Details -->
+          <div class="card" id="card-doc-details">
+            <div class="card-header">
+              <span class="card-badge">1</span>
+              <span class="card-title">Invoice &amp; Document Details</span>
+            </div>
+            <div class="doc-grid">
+              <!-- Row 1 -->
+              <div class="field-group">
+                <label class="field-label required">Invoice No</label>
+                <input class="field-input" id="inv-no" type="text" placeholder="PST-1001" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Invoice # (Ref)</label>
+                <input class="field-input" id="inv-hash" type="text" placeholder="1001" />
+              </div>
+              <div class="field-group">
+                <label class="field-label required">Date</label>
+                <input class="field-input" id="inv-date" type="text" placeholder="DD-MM-YYYY" />
+              </div>
+              <!-- Row 2 -->
+              <div class="field-group">
+                <label class="field-label">Order #</label>
+                <input class="field-input" id="inv-order" type="text" placeholder="PO-001" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">DC #</label>
+                <input class="field-input" id="inv-dc" type="text" placeholder="DC-101" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">2nd DC #</label>
+                <input class="field-input" id="inv-dc2" type="text" placeholder="DC-102" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Delivery & Dispatch -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-badge">2</span>
+              <span class="card-title">Delivery, Customer &amp; Dispatch Information</span>
+            </div>
+            <div class="parties-grid">
+              <!-- Delivered To -->
+              <div class="party-box">
+                <div class="party-label teal">📍 DELIVERED TO (Customer / Dealer)</div>
+                <input class="field-input" id="deliv-name" type="text" placeholder="Customer / Business Name *" />
+                <input class="field-input" id="deliv-addr" type="text" placeholder="Delivery Address" style="margin-top:8px" />
+              </div>
+              <!-- Invoiced To -->
+              <div class="party-box">
+                <div class="party-header">
+                  <div class="party-label teal">🏢 INVOICED TO</div>
+                  <label class="checkbox-wrap">
+                    <input type="checkbox" id="same-as-deliv" checked />
+                    <span class="checkbox-label">Same as delivered</span>
+                  </label>
+                </div>
+                <input class="field-input" id="inv-name" type="text" placeholder="Billing Name" disabled />
+                <input class="field-input" id="inv-addr" type="text" placeholder="Billing Address" style="margin-top:8px" disabled />
+              </div>
+            </div>
+            <!-- Dispatch strip -->
+            <div class="dispatch-strip">
+              <span class="dispatch-lbl">🚚 Dispatch Information:</span>
+              <input class="field-input dispatch-input" id="dispatch-info" type="text"
+                     placeholder="e.g. Faisal Movers / Driver: Aslam (0300-1234567) / Truck # LES-4589" />
+            </div>
+          </div>
+
+          <!-- 3. Line Items -->
+          <div class="card" id="card-items">
+            <div class="card-header">
+              <span class="card-badge">3</span>
+              <span class="card-title">Products &amp; Line Items</span>
+              <button class="btn btn-orange btn-sm" id="btn-add-row">+ Add Product Row</button>
+            </div>
+            <!-- Table header -->
+            <div class="table-header">
+              <div class="th col-sno">S#</div>
+              <div class="th col-name">Name of Product *</div>
+              <div class="th col-pack">Packing</div>
+              <div class="th col-qty">Qty *</div>
+              <div class="th col-bonus">Bonus</div>
+              <div class="th col-rate">Unit Rate (PKR) *</div>
+              <div class="th col-amt">Amount (PKR)</div>
+              <div class="th col-del"></div>
+            </div>
+            <div id="rows-container"></div>
+          </div>
+
+          <!-- 4. Totals -->
+          <div class="card">
+            <div class="totals-layout">
+              <!-- Left: words + coordinator -->
+              <div class="totals-left">
+                <div class="words-label teal">AMOUNT IN WORDS (Pakistani Lac / Crore):</div>
+                <div class="words-box" id="amount-words">Rupees Zero Only</div>
+                <div class="coordinator-row">
+                  <span class="field-label">Sales Coordinator:</span>
+                  <input class="field-input" id="sales-coord" type="text" placeholder="e.g. Dennis" />
+                </div>
+              </div>
+              <!-- Right: totals -->
+              <div class="totals-right">
+                <div class="total-row">
+                  <span class="total-lbl">Gross Amount (PKR):</span>
+                  <span class="total-val teal" id="gross-amt">0.00</span>
+                </div>
+                <div class="total-row">
+                  <span class="total-lbl">Discount (PKR):</span>
+                  <input class="total-input" id="discount-val" type="text" value="0" />
+                </div>
+                <div class="total-row highlight">
+                  <span class="total-lbl">Invoice Amount (PKR):</span>
+                  <span class="total-val" id="invoice-amt">0.00</span>
+                </div>
+                <div class="total-row">
+                  <span class="total-lbl">Total Due (PKR):</span>
+                  <span class="total-val teal" id="total-due">0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Generate Button -->
+          <button class="btn btn-orange btn-generate" id="btn-generate">
+            📄&nbsp;&nbsp;Generate Invoice PDF
+          </button>
+
+        </div><!-- /tab-scroll -->
+      </section><!-- /tab-invoice -->
+
+      <!-- TAB: History -->
+      <section class="tab-panel" id="tab-history">
+        <div class="tab-scroll">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Invoice History</h1>
+              <p class="page-sub">Browse, search, and re-open past invoices.</p>
+            </div>
+            <input class="field-input search-input" id="history-search" type="text" placeholder="🔍  Search invoices..." />
+          </div>
+          <div id="history-list" class="history-list"></div>
+        </div>
+      </section>
+
+      <!-- TAB: Settings -->
+      <section class="tab-panel" id="tab-settings">
+        <div class="tab-scroll">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Settings</h1>
+              <p class="page-sub">Manage company details, invoice prefix, and image assets.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-badge">🏢</span>
+              <span class="card-title">Company Information</span>
+            </div>
+            <div class="settings-grid">
+              <div class="field-group full-width">
+                <label class="field-label">Company Name</label>
+                <input class="field-input" id="s-company-name" type="text" />
+              </div>
+              <div class="field-group full-width">
+                <label class="field-label">Address</label>
+                <input class="field-input" id="s-company-address" type="text" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Email</label>
+                <input class="field-input" id="s-company-email" type="text" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Phone</label>
+                <input class="field-input" id="s-company-phone" type="text" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Sales Coordinator</label>
+                <input class="field-input" id="s-sales-coord" type="text" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Invoice Prefix</label>
+                <input class="field-input" id="s-inv-prefix" type="text" placeholder="PST-" />
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <div class="card-header">
+              <span class="card-badge">🖼️</span>
+              <span class="card-title">Invoice Assets</span>
+            </div>
+            <div class="settings-grid">
+              <div class="field-group">
+                <label class="field-label">Company Logo</label>
+                <div class="file-pick-row">
+                  <input class="field-input" id="s-logo-path" type="text" placeholder="Path to logo.png" readonly />
+                  <button class="btn btn-secondary btn-sm" id="btn-pick-logo">Browse</button>
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Stamp Image</label>
+                <div class="file-pick-row">
+                  <input class="field-input" id="s-stamp-path" type="text" placeholder="Path to stamp.png" readonly />
+                  <button class="btn btn-secondary btn-sm" id="btn-pick-stamp">Browse</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-orange btn-generate" id="btn-save-settings" style="margin-top:16px">
+            💾&nbsp;&nbsp;Save Settings
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+  <script src="invoice.js"></script>
+  <script src="history.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>
